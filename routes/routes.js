@@ -1,33 +1,13 @@
+const user = require('./user.js');
+const users = require('./users.js');
+
 const appRouter = (app) => {
-	app.get('/', (req, res) => {
-		res.status(200).send({message: 'Welcome to REST.'});
-	});
+	app.get('/', (req, res) =>
+		res.status(200).send({message: 'Welcome to REST.'})
+	);
 
-	app.get('/user', (req, res) => {
-		const data = {
-			firstName: 'John',
-			lastName: 'Doe',
-			email: 'john@doe.com'
-		};
-		res.status(200).send(data);
-	});
-
-	app.get('/users/:num', (req, res) => {
-		let users = [];
-		const num = req.params.num;
-
-		if (isFinite(num) && num > 0) {
-			users.push({
-				id: num,
-				firstName: 'John',
-				lastName: 'Doe',
-				email: 'john@doe.com'
-			});
-			res.status(200).send(users);
-		} else {
-			res.status(400).send({message: 'Invalid number supplied.'});
-		}
-	});
+	app.get('/user', user);
+	app.get('/users/:num', users);
 };
 
 module.exports = appRouter;
