@@ -6,8 +6,8 @@ const appRouter = (app) => {
 		res.status(200).send({message: 'Welcome to REST.'})
 	);
 
-	app.get('/user', user);
-	app.get('/users/:num', users);
+	user(app);
+	users(app);
 };
 
 module.exports = appRouter;
