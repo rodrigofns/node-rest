@@ -1,6 +1,6 @@
 const users = (req, res) => {
 	let users = [];
-	const num = req.params.num;
+	const num = req.params.num; // users/xxx
 
 	if (isFinite(num) && num > 0) {
 		users.push({
