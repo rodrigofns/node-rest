@@ -1,13 +1,9 @@
 const axios = require('axios');
 
 const wiki = (app) => {
-	function queryWiki(response, params, onDone) {
-		axios.get('https://en.wikipedia.org/w/api.php', {params})
-			.then(resp => onDone(resp.data))
-			.catch(err => response.status(400).send(err));
-	}
+	const WIKI_URL = 'https://en.wikipedia.org/w/api.php';
 
-	app.get('/wiki/head/:s', (request, response) => {
+	app.get('/wiki/head/:s', async (request, response) => {
 		const params = {
 			action: 'query',
 			prop: 'extracts',
@@ -16,16 +12,20 @@ const wiki = (app) => {
 			titles: request.params.s
 		};
 
-		queryWiki(response, params,
-			data => {
-				response.status(200).send({
-					searched: data.query.normalized,
-					found: data.query.pages
-				});
-			});
+		let r = null;
+		try {
+			r = await axios.get(WIKI_URL, {params});
+		} catch (err) {
+			response.status(400).send(err);
+		}
+
+		response.status(200).send({
+			searched: r.data.query.normalized,
+			found: r.data.query.pages
+		});
 	});
 
-	app.get('/wiki/full/:s', (request, response) => {
+	app.get('/wiki/full/:s', async (request, response) => {
 		const params = {
 			action: 'query',
 			prop: 'revisions',
@@ -34,35 +34,39 @@ const wiki = (app) => {
 			titles: request.params.s
 		};
 
-		queryWiki(response, params,
-			data => {
-				const pageid = Object.keys(data.query.pages)[0];
-				const page = data.query.pages[pageid];
-				let out = {
-					searched: data.query.normalized[0]
-				};
+		let r = null;
+		try {
+			r = await axios.get(WIKI_URL, {params});
+		} catch (err) {
+			response.status(400).send(err);
+		}
 
-				if (pageid == -1) {
-					out = {
-						...out,
-						status: 'missing (pageid: -1)'
-					};
-				} else {
-					const bulk = page.revisions[0];
-					out = {
-						...out,
-						found: {
-							pageid: page.pageid,
-							title: page.title,
-							format: bulk.contentformat,
-							contentmodel: bulk.contentmodel,
-							body: bulk['*']
-						}
-					};
+		const pageid = Object.keys(r.data.query.pages)[0];
+		const page = r.data.query.pages[pageid];
+		let out = {
+			searched: r.data.query.normalized[0]
+		};
+
+		if (pageid == -1) {
+			out = {
+				...out,
+				status: 'missing (pageid: -1)'
+			};
+		} else {
+			const bulk = page.revisions[0];
+			out = {
+				...out,
+				found: {
+					pageid: page.pageid,
+					title: page.title,
+					format: bulk.contentformat,
+					contentmodel: bulk.contentmodel,
+					body: bulk['*']
 				}
+			};
+		}
 
-				response.status(200).send(out);
-			});
+		response.status(200).send(out);
 	});
 };
 
